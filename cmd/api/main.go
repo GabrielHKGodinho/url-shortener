@@ -4,39 +4,26 @@ import (
 	"fmt"
 	"net/http"
 
+	// Ajuste os imports para o SEU caminho do github
+	"github.com/GabrielHKGodinho/url-shortener/internal/api"
 	"github.com/GabrielHKGodinho/url-shortener/internal/store"
 )
 
 func main() {
+	// 1. Inicializa o Banco
 	memStore := store.NewMemoryStore()
 
+	// 2. Configura Rotas
+	// Perceba como passamos o 'memStore' para dentro dos handlers.
+	// Isso se chama INJEÇÃO DE DEPENDÊNCIA (Manual).
 	mux := http.NewServeMux()
 
-	// Define uma rota GET "/"
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+	mux.HandleFunc("/shorten", api.HandleShorten(memStore))
+	mux.HandleFunc("/", api.HandleRedirect(memStore))
 
-		link := store.Link{
-			ShortCode:   "golang",
-			OriginalURL: "https://golang.org",
-		}
-		memStore.Save(link)
-
-		rec, erro := memStore.Get(link.ShortCode)
-
-		if erro != nil {
-			http.Error(w, "Link não encontrado!", 404)
-		}
-
-		fmt.Fprintf(w, "Recuperado: %s --> %s", rec.ShortCode, rec.OriginalURL)
-	})
-
-	// Configuração do servidor
-	port := ":8080"
-	fmt.Printf("Servidor rodando na porta %s\n", port)
-
-	// Sobe o servidor. Se der erro, o programa fecha (Panic)
-	if err := http.ListenAndServe(port, mux); err != nil {
+	// 3. Start
+	fmt.Println("Servidor rodando na porta :8080")
+	if err := http.ListenAndServe(":8080", mux); err != nil {
 		panic(err)
 	}
 }

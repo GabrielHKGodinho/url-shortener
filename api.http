@@ -1,0 +1,10 @@
+### Criar Short Link
+POST http://localhost:8080/shorten
+Content-Type: application/json
+
+{
+  "url": "https://www.google.com"
+}
+
+### Testar Redirecionamento (Substitua o código 'ABCDEF' pelo que vier na resposta acima)
+GET http://localhost:8080/bOXqqc
