@@ -5,6 +5,7 @@ type Link struct {
 	OriginalURL string `json:"original_url"`
 	ShortCode   string `json:"short_code"`
 	CreatedAt   string `json:"created_at"`
+	Clicks      int    `json:"clicks"`
 }
 
 func (l *Link) String() string {

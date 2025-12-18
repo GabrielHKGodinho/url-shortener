@@ -33,7 +33,7 @@ func sendError(w http.ResponseWriter, status int, message string) {
 
 // HandleShorten cuida da criação do link.
 // Note que precisamos passar o 'store' como parâmetro, senão ele não sabe onde salvar.
-func HandleShorten(db *store.MemoryStore) http.HandlerFunc {
+func HandleShorten(db store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			sendError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -52,7 +52,11 @@ func HandleShorten(db *store.MemoryStore) http.HandlerFunc {
 			OriginalURL: req.URL,
 			ShortCode:   code,
 		}
-		db.Save(link)
+
+		if err := db.Save(link); err != nil {
+			sendError(w, http.StatusInternalServerError, "Failed to save link")
+			return
+		}
 
 		// Resposta
 		resp := CreateLinkResponse{
@@ -64,7 +68,7 @@ func HandleShorten(db *store.MemoryStore) http.HandlerFunc {
 }
 
 // HandleRedirect cuida do redirecionamento.
-func HandleRedirect(db *store.MemoryStore) http.HandlerFunc {
+func HandleRedirect(db store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Pega o código da URL: /abc -> abc
 		// Cuidado: Em produção usaríamos um router melhor (Chi ou Gin) para pegar params.
@@ -79,6 +83,8 @@ func HandleRedirect(db *store.MemoryStore) http.HandlerFunc {
 			sendError(w, http.StatusNotFound, "Link not found")
 			return
 		}
+
+		db.IncrementClick(code)
 
 		http.Redirect(w, r, link.OriginalURL, http.StatusTemporaryRedirect)
 	}

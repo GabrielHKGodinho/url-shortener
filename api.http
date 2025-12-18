@@ -7,4 +7,4 @@ Content-Type: application/json
 }
 
 ### Testar Redirecionamento (Substitua o código 'ABCDEF' pelo que vier na resposta acima)
-GET http://localhost:8080/bOXqqc
+GET http://localhost:8080/MjOlQe

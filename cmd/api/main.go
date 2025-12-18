@@ -10,19 +10,19 @@ import (
 )
 
 func main() {
-	// 1. Inicializa o Banco
-	memStore := store.NewMemoryStore()
+	connStr := "user=postgres password=secret dbname=shortener sslmode=disable"
 
-	// 2. Configura Rotas
-	// Perceba como passamos o 'memStore' para dentro dos handlers.
-	// Isso se chama INJEÇÃO DE DEPENDÊNCIA (Manual).
+	postgresStore, err := store.NewPostgresStore(connStr)
+	if err != nil {
+		panic(err) // Se não conectar no banco, a API nem deve subir
+	}
+
+	// Como PostgresStore implementa a interface Store, o api.Handle aceita ele!
 	mux := http.NewServeMux()
+	mux.HandleFunc("/shorten", api.HandleShorten(postgresStore))
+	mux.HandleFunc("/", api.HandleRedirect(postgresStore))
 
-	mux.HandleFunc("/shorten", api.HandleShorten(memStore))
-	mux.HandleFunc("/", api.HandleRedirect(memStore))
-
-	// 3. Start
-	fmt.Println("Servidor rodando na porta :8080")
+	fmt.Println("Servidor rodando na porta :8080 (Conectado ao Postgres)")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		panic(err)
 	}
